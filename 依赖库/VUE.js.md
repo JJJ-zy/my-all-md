@@ -1111,3 +1111,166 @@ lang="css" / lang="less" 来告诉vue,样式使用什么写的
 npm i animate.css
 ```
 
+# 配置代理(跨域问题)
+
+```js
+同域访问  同协议、同主机ip、同端口号
+http localhost 8080    http localhost 8080
+
+跨域 
+http localhost 8080    http localhost 5000
+```
+
+> 解决方法
+
+```js
+# cors
+	写服务端的人 ， 写一些特殊的响应头
+    但是会 被任何请求都能请求到
+# jsonp      借助 script的src
+	用的少  只能解决get请求跨域   面试问的多
+# 代理服务器
+	http localhost 8080  -->  http localhost 8080 -->  http localhost 5000
+	
+	代理服务器没有浏览器，服务器访问服务器 采用传统的http协议 ，没有同源协议 ,同源协议是ajax这种才有
+
+	// nginx  或者  ** vue-cli **
+# vue-cli 代理
+	# https://cli.vuejs.org/zh/config/#devserver-proxy
+
+	如果你的前端应用和后端 API 服务器没有运行在同一个主机上，你需要在开发环境下将 API 请求代理到 API 服务器。这个问题可以通过 vue.config.js 中的 		devServer.proxy 选项来配置。
+    module.exports = {
+        devServer: {
+            proxy: 'http://localhost:4000'
+        }
+    }
+	//ajax请求本机代理   如果public文件夹下有同名的文件，就不会使用代理，直接返回当前有的文件
+	axios.get('http://localhost:8080/students')
+
+	# 如果你想要更多的代理控制行为，也可以使用一个 path: options 成对的对象
+    module.exports = {
+      devServer: {
+        proxy: {
+          '/api': {
+            target: '<url>',
+            pathRewrite:{'^/api':''} 	//将路径转换
+            ws: true,		//用于支持websocket
+            changeOrigin: true		//是否以真实地址访问  false使用当前host  true使用访问api的host 即操控host的值   
+          },
+          '/foo': {
+            target: '<other_url>'
+          }
+        }
+      }
+    }
+```
+
+# vue-resource
+
+```js
+# vue-resource 是插件库
+//引入vue-resource
+    import vueResource from 'vue-resource'
+
+    Vue.use(vueResource)  //直接应用在vm原型对象上
+
+
+	this.$http.get(url).then()
+```
+
+# slot插槽
+
+```tex
+http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4
+https://s3.ax1x.com/2021/01/16/srJlq0.jpg
+
+```
+
+> 默认插槽
+
+```js
+# 在组件中使用<slot></slot>标签做标识
+        <slot>
+            <ul>
+                <li v-for="data in listData" :key="data.index">{{data}}</li>
+            </ul>
+        </slot>
+# 在使用组件时，用双闭合标签，并且不要再传数据，否则数据还会渲染
+		<Category title="美食">
+            <img src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" alt="">
+        </Category>
+```
+
+> 具名插槽
+
+```js
+# 具有名字的插槽
+	<template>
+        <div class="category">
+            <h3>{{title}}分类</h3>
+            <slot name="center">
+                <ul>
+                    <li v-for="data in listData" :key="data.index">{{data}}</li>
+                </ul>
+            </slot>
+            <slot name="footer"></slot>
+        </div>
+	</template>
+# 使用组件
+    <Category title="美食">
+        <img slot="center" src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" alt="">
+            <a slot="footer" href="#">更多美食</a>
+	</Category>
+
+
+# 多个标签使用插槽 用template标签包裹，template标签会被去除
+	# 在template中有使用slot的新写法
+    	<template v-slot:center>
+        </template>
+```
+
+> 作用域插槽
+
+```js
+# 子组件向父组件传递数据  子组件的具体结构由父组件决定  数据由子组件管理
+	<template>
+        <div class="category">
+            <h3>{{title}}分类</h3>
+            <slot :games="games"></slot>
+        </div>
+    </template>
+
+    <script>
+        export default {
+            name: 'Category',
+            props:['title'],
+            data() {
+                return {
+                    games:['红色警戒','穿越火线','劲舞团','超级玛丽'],
+                }
+            },
+        }
+    </script>
+
+# 父组件
+	<template>
+        <div class="container">
+            <Category title="游戏">
+                <template scope="atguigu">      <!-- 或者解构赋值 {games} 因为可能传递多个数据-->
+                    <ul>
+                        <li v-for="(g,index) in atguigu.games" :key="index">{{g}}</li>   
+                    </ul>
+                </template>
+
+            </Category>
+            <Category title="游戏">
+                <template slot-scope="{ games }">      <!-- 或者解构赋值 {games} 因为可能传递多个数据-->
+                    <ul>
+                        <li v-for="(g,index) in games" :key="index">{{g}}</li>   
+                    </ul>
+                </template>
+            </Category>
+        </div>
+    </template>
+```
+
