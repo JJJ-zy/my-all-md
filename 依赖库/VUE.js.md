@@ -977,3 +977,137 @@ lang="css" / lang="less" 来告诉vue,样式使用什么写的
 	this.$off()  #没参数解绑所有事件
 ```
 
+# 全局事件总线
+
+```bash
+任意组件间通信
+设置一个所有组件外的  全局人  因为vc对象是Vue.extend返回的   
+# 因为vc对象的原型的原型是Vue的原型，所以使用Vue的原型作为全局对象
+```
+
+![image-20220116115419317](C:\Users\zwj\AppData\Roaming\Typora\typora-user-images\image-20220116115419317.png)
+
+```js
+# 设置全局事件总线
+	new Vue({
+      render: h => h(App),
+      beforeCreate(){
+        //在页面创建之前将vue实例对象传递给vue原型对象
+        Vue.prototype.$bus = this    //设置全局事件总线
+      }
+    }).$mount('#app')
+
+# 全局事件总线可以实现组件间通信
+# 在组件消失时，解绑事件
+	  destroyed(){
+          this.$bus.$off('getStudent')    // 当前组件没了，但是总线身上的事件不会自动消失
+      }
+
+# 父给子用props  使用场景，多层嵌套，例如孙子给爷爷数据
+```
+
+# 消息订阅与发布
+
+```js
+# 订阅和发布
+	需要消息的订阅
+    发送消息的发布
+# js 库
+ pubsub-js
+# 订阅消息
+    methods:{
+        //订阅消息，第一个返回值时消息名  ，如果要得到  发布的数据 就需要设置第二个参数,或更多
+        getStudentName(msgName,data){
+            console.log(`school发现${msgName}发布了${data}消息`);
+        }
+    },
+    mounted(){ 
+        //订阅消息  以'hello'作为消息名    本质和全局事件总线差不多  
+        this.pubId = pubsub.subscribe('hello', this.getStudentName)
+    },
+    beforeDestroy(){
+        //取消订阅   获取订阅时的id
+        pubsub.unsubscript(this.pubId)
+    }
+# 发布消息
+    methods: {
+        // 发布消息
+        setStudentName(){
+            pubsub.publish('hello',this.studentName)
+        }
+    },
+```
+
+# $nextTick()
+
+```js
+# 语法
+	this.$nextTick(回调函数)
+# 作用
+	在下一次DOM更新结束后执行其指定的回调
+# 什么时候用
+	当改变数据后，要基于更新后的Dom进行某些操作时，要在nextTick所指定的回调函数中执行
+```
+
+# 过度和动画
+
+```js
+# 动画 css
+# <transtion>标签包裹住的标签  会自动在style里面寻找v-enter-active 和 v-leave-active  css选择器
+
+    <div>
+        <button @click="isShow = !isShow">显示/隐藏</button>
+    <transition name="hello" appear>   # name值决定 css中 v-enter-active的v   |  appear决定动画是否上来就展示  :appear="true" 或 appear
+        								# name 用来区分 多个动画效果
+        <h1 v-show="isShow">你好啊!!!</h1>
+    </transition>
+  </div>
+
+    .v-enter-active{
+        animation: atguigu 1s;
+    }
+
+    .v-leave-active{
+        animation: atguigu 1s reverse;
+    }
+
+    @keyframes atguigu {
+        from{
+            transform: translateX(-100%);
+        }
+        to{
+            transform: translateX(0px);
+        }
+    }
+```
+
+```js
+# 过渡 css
+	
+	/*  进入的起点  离开的终点 */ 
+    .h-enter,.h-leave-to{
+        transform: translateX(-100%);
+    }
+    .h-enter-active,.h-leave-active{
+        transition: 0.5s linear;
+    }
+    /* 进入的终点 离开的起点*/
+    .h-enter-to,.h-leave{
+        transform: translateX(0);
+    }
+```
+
+> 多个元素过度
+
+```js
+# 一个<transation> 中只能使用一个元素
+# 多个元素 在同一个transation中要用 transation-group 并且每个元素都要指定key
+```
+
+## 第三方动画库
+
+```js
+# 安装
+npm i animate.css
+```
+
