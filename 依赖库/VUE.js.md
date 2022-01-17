@@ -1274,3 +1274,622 @@ https://s3.ax1x.com/2021/01/16/srJlq0.jpg
     </template>
 ```
 
+# Vuex
+
+> 概念
+
+```tex
+专门在Vue中实现集中式状态(数据)管理的一个Vue插件,对vue应用中多个组件的共享状态进行集中式的管理(读/写),也是一种组件间通信的方式，且适用于任意组件间通信
+```
+
+> 什么时候使用
+
+```tex
+1.多个组件依赖于同一状态
+2.来自不同组件的行为需要变更同一状态
+```
+
+```js
+# 操控数据的读写方便
+```
+
+![image-20220117110452963](C:\Users\zwj\AppData\Roaming\Typora\typora-user-images\image-20220117110452963.png)
+
+## vuex工作原理
+
+```js
+#  https://vuex.vuejs.org/zh/#%E4%BB%80%E4%B9%88%E6%98%AF-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E6%A8%A1%E5%BC%8F
+```
+
+## 搭建vuex环境
+
+```js
+# 安装
+npm i vuex
+# 创建 store
+	import { Store } from "vuex";   //vuex.Store({})
+    // 引入vuex
+    import vuex from 'vuex'
+    import Vue from 'vue'
+    Vue.use(vuex)
+
+    //该文件用于创建Vuex中最核心的store
+    export default new Store({
+
+        //准备actions 用于响应组件中的动作
+        actions: {
+
+        },
+        //准备mutations 用于操作数据(state)
+        mutations: {
+
+        },
+        //准备state  用于存储数据
+        state: {
+
+        }
+    })
+# 引入 store
+    //引入vue-resource    //http插件
+    import vueResource from 'vue-resource'
+
+    import vuex from 'vuex'
+    Vue.use(vuex)
+    //引入store
+    import store from './store' //默认拿index   //es6 import 只会在加载js文件时，先import
+    // const store = require("./store")     // node方式，可以在任意位置随时随意import
+
+    Vue.config.productionTip = false
+
+    Vue.use(vueResource)
+
+    const vm = new Vue({
+      render: h => h(App),
+      //只有引入了vuex才能定义store
+      store,  // store:store.default,
+      beforeCreate(){
+        Vue.prototype.$bus = this
+      }
+    }).$mount('#app')
+    console.log(vm);
+
+# store其他里面常用的配置项
+	getters		中的方法有一个state参数  , 必须有返回值
+    
+#### 代码生成函数
+	mapState       mapGetters     mapActions          mapMutations
+
+# 自动生成计算属性
+// 对象写法
+    	...mapState({'sum':'sum','school':'school','course':'course'}),    //生成state中的属性  
+        ...mapGetters({'getDouble':'getDouble'})							//生成getters中的属性
+
+//简写  数组写法  放计算属性名和数据名一致时
+            ...mapState(['sum','school','course']),
+            ...mapGetters(['getDouble'])
+
+# 自动生成 actions对象中对应的methods
+	...mapActions({'incrementOdd':'jiaOdd','incrementWait':'jiaWait'})
+ 		//但是调用时，要传递参数，否则不会自动传参
+		<button @click="incrementOdd(n)">当前求和为奇数再加</button>
+	//数组写法  简写
+	...mapActions(['jiaOdd','jiaWait'])
+# 自动生成 mutations对象中对应的methods
+	...mapMutations({'increment':'JIA','decrement':'JIAN'}),
+        //但是调用时，要传递参数，否则不会自动传参
+        <button @click="increment(n)">+</button>
+	
+	//数组写法  简写
+	...mapMutations(['JIA','JIAN']),
+```
+
+## vuex模块化 namespace
+
+```js
+# 一下看不明白  设置好后输出 this.$store
+
+# 可以使用多个文件
+
+# 对不同组件的操作，放在不同的子store中,使用modules引入
+
+	const a = {
+        namespaced:true,			//namespaced标记的子store,才可以被自动生成代码的方法识别到name
+        actions:{},
+        mutations:{},
+        state:{},
+        getters:{}
+    }
+    const b = {
+        namespaced:true,			//namespaced标记的子store,才可以被自动生成代码的方法识别到name
+        actions:{},
+        mutations:{},
+        state:{},
+        getters:{}
+    }
+    
+    new vuex.Store({
+        modules:{
+            a,
+            b
+        }
+    })
+
+# 组件中使用自动生成代码 使用子store     第一个参数放子store的名  
+    ...mapState('a',{'sum':'sum','school':'school','course':'course'}), 
+        
+        
+        computed:{
+            //自动生成计算属性
+            ...mapState('CountOption',['sum','school','course']),
+            ...mapState('PersonOption',['personList']),
+            ...mapGetters('CountOption',['getDouble'])
+        },
+        methods: {
+            ...mapMutations('CountOption',{'increment':'JIA','decrement':'JIAN'}),
+
+            ...mapActions('CountOption',{'incrementOdd':'jiaOdd','incrementWait':'jiaWait'})
+        
+# 组件中不使用自动生成代码
+	 computed:{
+            personList(){
+                return this.$store.state.PersonOption.personList
+            },
+            sum(){
+                return this.$store.state.CountOption.sum
+            },
+            sumDouble(){
+                return this.$store.getters['CountOption/getDouble']
+            }
+        },
+        methods:{
+            add(){
+                if(this.name != ''){
+                    const personObj = {id:nanoid(),name:this.name}
+                    this.$store.commit('PersonOption/ADD_PERSON',personObj)  //子store做commit  在参数前面加子store名路径
+                    this.name = ''
+                }else {
+                    alert('不能为空')
+                }
+                
+            }
+        }
+```
+
+# 路由vue-router
+
+```js
+专门用来实现spa(single page web application)单页面应用
+# 通过监视路径变化，匹配组件
+	一个路由就是一组映射关系
+    key为路径，value为function函数(后端路由)或component组件
+```
+
+> 基本使用
+
+```js
+# 创建router文件夹 下 创建 index.js
+    // 该文件专门用于创建整个应用的路由器
+    import VueRouter from "vue-router";
+    //引入组件
+    import About from '../components/About.vue'
+    import Home from '../components/Home.vue'
+
+    //创建一个路由器
+    export default new VueRouter({
+
+        routes:[
+            {
+                path: '/about',
+                component: About
+            },
+            {
+                path: '/home',
+                component: Home
+            }
+        ]
+
+    })
+# main.js
+    //使用vue-router插件
+    import VueRouter from 'vue-router'
+
+    //引入路由器对象
+    import router from './router/index'
+
+    Vue.use(VueRouter)
+
+    const vm = new Vue({
+      render: h => h(App),
+      router: router
+    }).$mount('#app')
+    console.log(vm);
+# app.vue
+    // 原始跳转使用a标签 
+    /* <a class="list-group-item active" href="./about.html">About</a>
+    	<a class="list-group-item" href="./home.html">Home</a> */
+
+    // router-link标签实现路由的切换   active-class指定被选中之后的样式
+        <router-link class="list-group-item" active-class="active" to="/about">About</router-link>
+    	<router-link class="list-group-item" active-class="active" to="/home">Home</router-link>
+
+
+ 	// 指定组件的呈现位置-->
+            <router-view></router-view>
+```
+
+> 注意点
+
+```tex
+1.路由组件一般放在pages文件夹，一般组件通常存放在components文件夹
+2.通过切换，“隐藏”了的路由组件会被销毁
+3.每个组件都有自己的$route属性，存储自己的路由信息
+4.一个应用只有一个$router属性，可以通过组件的$router属性获取到
+```
+
+## 嵌套(多级)路由
+
+```js
+# children
+//创建一个路由器
+export default new VueRouter({
+
+    routes:[
+        {
+            path: '/about',
+            component: About
+        },
+        {
+            path: '/home',
+            component: Home,
+            children: [
+                {
+                    path: 'news',
+                    component: News
+                },
+                {
+                    path: 'message',
+                    component: Message
+                }
+            ]
+        }
+    ]
+
+})
+# template
+<template>
+    <div>
+        <h2>我是Home的内容</h2>
+        <div>
+            <ul class="nav nav-tabs">
+                <li>
+                <!-- <a class="list-group-item active" href="./home-news.html">News</a> -->
+                    <router-link class="list-group-item" active-class="active" to="/home/news">News</router-link>
+                </li>
+                <li>
+                <!-- <a class="list-group-item " href="./home-message.html">Message</a> -->
+                    <router-link class="list-group-item" active-class="active" to="/home/message">Message</router-link>
+                </li>
+            </ul>
+            <router-view></router-view>
+        </div>
+    </div>
+    
+</template>
+
+```
+
+## 路由的query传参
+
+```js
+# 直接在路径后使用问号传参
+	// query传参 问号方法 
+    // <router-link :to="`/home/message/detail?id=${m.id}&title=${m.title}`">{{m.title}}</router-link> 
+	// query传参 对象写法 
+    <router-link :to="{
+        path: '/home/message/detail',
+            query: {
+                id: m.id,
+                title: m.title
+            }
+        }">
+        {{m.title}}
+     </router-link>
+```
+
+## name 命名路由
+
+```js
+# 在 路由js中给路由命名
+	{
+        name:'xiangqing',
+        path: 'detail',
+        component: Detail
+    }
+
+# 在组件中使用  使用name替换path ,简化跳转路径，相当于别名
+	<router-link :to="{
+    	name: 'xiangqing',
+        query: {
+            id: m.id,
+            title: m.title
+        }
+    }">
+    	{{m.title}}
+    </router-link>
+```
+
+## params参数传参
+
+```js
+# params参数 需要先在路由js中声明
+    {
+        //用占位符告诉路由器参数
+        name:'xiangqing',
+        path: 'detail/:id/:title',
+        component: Detail
+    }
+# 在组件中使用
+    <!-- params传参 -->
+        <!-- <router-link :to="`/home/message/detail/${m.id}/${m.title}`">{{m.title}}</router-link> -->
+    <!-- params传参 对象方法 -->
+    <router-link :to="{
+    	name: 'xiangqing',  // 使用params参数 不能使用 path参数
+        params: {
+            id: m.id,
+                title: m.title
+        }
+    }">
+    {{m.title}}
+    </router-link>
+```
+
+## 路由的props参数
+
+```js
+# 在路由js中配置
+{
+    //用占位符告诉路由器参数
+    name:'xiangqing',
+    path: 'detail/:id/:title',
+    component: Detail,
+    //props的第一种写法，值为对象，该对象中所有的key-value都会以props的形式传给Detail组件
+   	// props:{a:1,b:'hello'}
+
+    //props的第二种写法，值为布尔值，若布尔值为真，就会把该路由组件收到的所有  params  参数，以props的形式传给Detail组件
+    // props: true
+
+    //props的第三种写法，值为函数 , 可以返回params和query
+    props($route){
+         return {id:$route.params.id,title:$route.params.title}
+    }
+}
+
+# 数据传到哪个组件,就在哪个组件路径下定义props属性
+<template>
+    <ul>
+        <li>消息编号: {{id}}</li>
+        <li>消息标题: {{title}}</li>
+    </ul>
+</template>
+
+<script>
+    export default {
+        name: 'Detail',
+        props:['id','title']
+        // mounted() {
+        //     console.log(this.$route);
+        // },
+    }
+</script>
+
+# 作用 简化$route.params这种写法
+```
+
+## router-link 的 replace属性
+
+```html
+<!-- 
+	1.作用: 控制器由跳转时操作浏览器历史记录的模式
+	2.浏览器的历史记录有两种写入方式，分别为push和replace,push是追加历史记录，replace是替换当前记录。路由跳转时候默认为push
+	3.如何开启replace模式:<router-link replace ......>News</router-link>
+-->
+	<router-link :replace="true" class="list-group-item" active-class="active" to="/about">About</router-link>
+	<router-link replace class="list-group-item" active-class="active" to="/home">Home</router-link>
+```
+
+## 编程式路由导航
+
+```js
+# 使用应用唯一的 $router对象
+	this.$router.back()	//前进
+	this.$router.forward()	//后退
+	this.$router.go(num)	//按参数决定前进或后退几步
+
+	this.$router.push({	//进入到哪个路径
+        name: 'xiangqing',  // 使用params参数 不能使用 path参数
+        params: {
+            id: m.id,
+            title: m.title
+        }
+    })
+
+	this.$router.replace({ 		//进入到哪个路径 替换当前路径
+        name: 'xiangqing',  // 使用params参数 不能使用 path参数
+        params: {
+            id: m.id,
+            title: m.title
+        }
+    })
+```
+
+## 缓存路由组件
+
+```js
+# 因为 组件切换时会被销毁
+<keep-alive include="News">		//include指定的组件名  组件不会被销毁   多个组件用数组 :include="[]"
+    <router-view></router-view>
+</keep-alive>
+```
+
+## 两个生命周期
+
+```js
+# 因为使用缓存路由组件时，组件不会被销毁，所以销毁生命周期无法使用
+# 所以有两个新生命周期使用，当做setInterval时，使用
+        activated(){           //激活
+            this.timer = setInterval(() => {
+                console.log('@');
+                this.opacity -= 0.01
+                if(this.opacity <= 0) this.opacity = 1
+            }, 16);
+        },
+        deactivated(){          //关闭激活
+            clearInterval(this.timer) 
+        }
+```
+
+## 路由守卫
+
+> 全局前置
+
+```js
+//全局前置路由守卫--初始化的时候被调用，每次路由切换前被调用，在router对象暴露前配置
+router.beforeEach((to,from,next) => {	//to是要去的路径from是被切换的路径  next放行
+    const school = localStorage.getItem('school')
+    console.log(school == "尚硅谷");
+    console.log(to.name,from,next);
+    if(to.name === "xiaoxi" || to.name === "xiangqing"){
+        if(school == "尚硅谷"){
+            next()
+        }else{
+            alert("学校名不对")
+        }
+    }else{
+        next()
+    }
+    
+})
+
+export default router
+```
+
+> meta属性
+
+```js
+# meta 用来设置哪个路由需要被拦截
+	meta:{isAuth:true}
+
+
+router.beforeEach((to,from,next) => {	//to是要去的路径from是被切换的路径  next放行
+    const school = localStorage.getItem('school')
+    console.log(school == "尚硅谷");
+    console.log(to.name,from,next);
+    if(to.meta.isAuth){			//isAuth为true的都放行
+        if(school == "尚硅谷"){
+            next()
+        }else{
+            alert("学校名不对")
+        }
+    }else{
+        next()
+    }
+    
+})
+```
+
+> 后置守卫
+
+```js
+//全局前后置路由守卫--初始化的时候被调用，每次路由切换后被调用，在router对象暴露前配置
+router.afterEach((to,from) => {
+    document.title = to.meta.title || '硅谷系统'
+})
+
+```
+
+> 独享路由守卫
+
+```js
+# 单个路由单独享用的守卫
+	{
+        name:'xiaoxi',
+        path: 'news',
+        component: News,
+        meta:{isAuth: true,title:'新闻'},
+        beforeEnter: (to, from, next) => {			//独享路由守卫
+             const school = localStorage.getItem('school')
+             if(to.meta.isAuth){
+                  if(school == "尚硅谷"){
+                       next()
+                  }else{
+                       alert("学校名不对")
+                  }
+              }else{
+                  next()
+              }
+         }
+    },
+```
+
+> 组件内路由守卫
+
+```js
+//通过路由规则，进入该组件前被调用
+beforeRouteEnter (to, from, next) {
+    // ...
+},
+//通过路由规则，离开该组件时调用
+beforeRouteLeave (to, from, next) {
+    // ...
+}
+```
+
+## history模式和hash模式
+
+```js
+# 默认开启hash模式
+	hash模式就是 在路径上加  /#/
+    /#/后面的路径不会传到服务器，作为hash值，在前端使用
+# 切换模式	在router对象中添加属性
+	mode:'history'
+
+# 区别
+	1.样式
+	hash /#/
+    history /
+        
+    2.兼容性
+    	hash比history好
+    3.不带# 
+    	影响发送后端请求
+        
+# history解决办法
+	后端解决 辨别后端路径和前端路径
+```
+
+# UI
+
+![image-20220117214928574](C:\Users\zwj\AppData\Roaming\Typora\typora-user-images\image-20220117214928574.png)
+
+> 按需引入配置
+
+```js
+# babel.config.js		先安装@babel/preset-env -D
+	presets: [
+    	'@vue/cli-plugin-babel/preset',
+    	["@babel/preset-env", { "modules": false }]
+	],
+    plugins: [
+        [
+            "component",
+            {
+                "libraryName": "element-ui",
+                "styleLibraryName": "theme-chalk"
+            }
+        ]
+    ]
+
+
+# https://element.eleme.cn/#/zh-CN/component/installation
+```
+
