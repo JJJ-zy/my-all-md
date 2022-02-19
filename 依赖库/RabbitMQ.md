@@ -257,7 +257,7 @@ confirm是异步的，生产者可以在等确认的同时发送下一条消息�
 	给每条消息设置一个序号，出问题的会将消息序号返回，不需要等待，异步返回
 	
 	如何处理异步未确认消息
-        	最好的解决方案是把未确认的消息放到一个基于内存的能被发布线程访问的队列，比如说用ConcurrentLinkedQueue这个队列在confirm callbacks与发布		线程之间进行消息的传递
+        	最好的解决方案是把未确认的消息放到一个基于内存的能被发布线程访问的队列，比如说用ConcurrentLinkedQueue这个队列在confirm callbacks与发布线程之间进行消息的传递
 ```
 
 ![image-20220109113431602](C:\Users\zwj\AppData\Roaming\Typora\typora-user-images\image-20220109113431602.png)

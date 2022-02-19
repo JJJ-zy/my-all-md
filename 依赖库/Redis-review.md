@@ -19,7 +19,7 @@ Not Only SQL  不仅仅是SQL
 ### 传统关系型数据库(RDBMS)和NoSQL
 
 ```tex
-REDMS:
+RDBMS:
 	结构化组织
 	SQL
 	数据和关系都在一个表中  行列

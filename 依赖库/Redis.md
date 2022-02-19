@@ -1,4 +1,4 @@
-
+   
 
 # Redis
 
@@ -55,6 +55,13 @@ flushall通杀全部库
 
 串行  vs  多线程+锁（memcache） vs 单线程+多路io复用(redis)
 
+```bash
+# 单线程 所有请求全部交给一个代理向redis进行访问
+# 多路io复用 每个请求与其他请求互不影响
+```
+
+
+
 ```tex
 1、执行 vi world.txt  进入编辑器（默认命令模式），
 
@@ -69,9 +76,7 @@ flushall通杀全部库
 wq解释为：write quite
 不想保存，q
 强制退出 q!
-————————————————
-版权声明：本文为CSDN博主「_挪亚_」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-原文链接：https://blog.csdn.net/zengmingen/article/details/50802555
+
 ```
 
 
@@ -197,7 +202,7 @@ Redis的set集合是string类型的无序集合,他的底层其实是一个value
 ```tex
 sadd key value1 value2  将一个或多个value存到集合中，相同值忽略
 smembers key 取出该集合的所有值
-simember key value  判断集合key是否含有该value值  ，有1  无0
+sismember key value  判断集合key是否含有该value值  ，有1  无0
 scard key  返回该集合的元素个数
 srem key value1 value2  删除集合中的某个元素
 spop key  随机吐出集合中的某个值

@@ -87,11 +87,11 @@ tar -xvf nginx-1.12.2.tar.gz
 
 在nginx目录下执行
 如果服务器版本高
-vim src/os/unix/ngx_user.c
+vim /usr/src/nginx-1.12.2/src/os/unix/ngx_user.c
 注释/*cd.current_salt[0] = ~salt[0];*/
 
 去掉-Werror 错误
-vim objs/Makefile
+vim /usr/src/nginx-1.12.2/objs/Makefile
 CFLAGS =  -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -Werror -g   去掉-Werror
 
 检查是否安装好
